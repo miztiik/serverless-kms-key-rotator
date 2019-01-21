@@ -41,10 +41,13 @@ You can also follow this article in **[Youtube](https://www.youtube.com/watch?v=
 1. ### Encrypt Data with CMK
     Lets encrypt a local file `test_file.txt`
     ```sh
-    aws kms encrypt --key-id 6fa6043b-2fd4-433b-83a5-3f4193d7d1a6 --plaintext fileb://test_file.txt --output text --query CiphertextBlob
+    aws kms encrypt --key-id "alias/kms-demo" \
+        --plaintext fileb://test_file.txt \
+        --output text \
+        --query CiphertextBlob
 
     # If you want the base64 encoded data to be saved to a file
-    aws kms encrypt --key-id 6fa6043b-2fd4-433b-83a5-3f4193d7d1a6 --plaintext fileb://test_file.txt --output text --query CiphertextBlob | base64 --decode > encrypted_test_file
+    aws kms encrypt --key-id "alias/kms-demo" --plaintext fileb://test_file.txt --output text --query CiphertextBlob | base64 --decode > encrypted_test_file
     ```
     1. #### Encrypted upload to S3
         If you wanted to upload files to S3 with the newly created key,
@@ -59,11 +62,17 @@ You can also follow this article in **[Youtube](https://www.youtube.com/watch?v=
     Since the encrypted data includes keyid, we dont have to mention the `key-id` when decrypting the data.
 
     ```sh
-    aws kms decrypt --ciphertext-blob fileb://encrypted_test_file --output text --query Plaintext
+    aws kms decrypt --ciphertext-blob \
+        fileb://encrypted_test_file \
+        --output text \
+        --query Plaintext
     ```
     But the decrypted file is in base64 encoded. If we have to decode and save to file,
     ```sh
-    aws kms decrypt --ciphertext-blob fileb://encrypted_test_file --output text --query Plaintext | base64 --decode > decrypted_test_file.txt
+    aws kms decrypt \
+        --ciphertext-blob fileb://encrypted_test_file \
+        --output text \
+        --query Plaintext | base64 --decode > decrypted_test_file.txt
     ```
 
 1. ### Rotate Customer Master Key( CMK )
@@ -74,15 +83,15 @@ You can also follow this article in **[Youtube](https://www.youtube.com/watch?v=
     #### Enable Automatic Key Rotation
     Get the current status of key rotation
     ```sh
-    aws kms get-key-rotation-status --key-id 6fa6043b-2fd4-433b-83a5-3f4193d7d1a6
+    aws kms get-key-rotation-status --key-id "alias/kms-demo"
     ```
     If you get a output as below, `false`, that means it is not enabled. Lets enable it,
     ```sh
-    aws kms enable-key-rotation --key-id 6fa6043b-2fd4-433b-83a5-3f4193d7d1a6
+    aws kms enable-key-rotation --key-id "alias/kms-demo"
     ```
     Check the status again,
     ```sh
-    aws kms get-key-rotation-status --key-id 6fa6043b-2fd4-433b-83a5-3f4193d7d1a6
+    aws kms get-key-rotation-status --key-id "alias/kms-demo"
     ```
     
     #### Manual Key Rotation
@@ -91,15 +100,31 @@ You can also follow this article in **[Youtube](https://www.youtube.com/watch?v=
     
     ```sh
     # List current alias,
-    aws kms list-aliases --key-id 6fa6043b-2fd4-433b-83a5-3f4193d7d1a6
+    aws kms list-aliases --key-id "alias/kms-demo"
     
     # If no alias, set one.
-    aws kms create-alias --alias-name alias/my-shiny-encryption-key --target-key-id 6fa6043b-2fd4-433b-83a5-3f4193d7d1a6
+    aws kms create-alias --alias-name alias/my-shiny-encryption-key --target-key-id "alias/kms-demo"
 
     # Point the alias to new CMK KeyID
     aws kms update-alias --alias-name alias/my-shiny-encryption-key --target-key-id 0987dcba-09fe-87dc-65ba-ab0987654321
     ```
     **Note:** When you begin using the new CMK, be sure to keep the original CMK enabled so that AWS KMS can decrypt data that the original CMK encrypted. When decrypting data, KMS identifies the CMK that was used to encrypt the data, and it uses the same CMK to decrypt the data. As long as you keep both the original and new CMKs enabled, AWS KMS can decrypt any data that was encrypted by either CMK.
+
+1. ### Disabling KMS Keys
+    Now, Lets say you have been using the keys for sometime and you dont want to use the keys, you can disable the CMK before deletion.
+
+    ```sh
+    aws kms disable-key --key-id "alias/kms-demo"
+    ```
+    If you try to download the file again and you will run into an error (`dKMS.DisabledException`).
+
+1. ### Deleting KMS Keys
+    You can delete unused or older keys to avoid future costs.
+
+    ```sh
+    aws kms schedule-key-deletion --key-id KMS_KEY_ID
+    ```
+    **Note:** You will never be able to retrieve the file from S3 once you delete the CMK!
 
 ##### References
 1. [Rotating Customer Master Keys](https://docs.aws.amazon.com/kms/latest/developerguide/rotate-keys.html#rotate-keys-manually)
