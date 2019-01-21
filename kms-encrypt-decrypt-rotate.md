@@ -5,7 +5,7 @@ AWS KMS encrypts your data with encryption keys that you manage. It is also inte
 
 You can also follow this article in **[Youtube](https://www.youtube.com/watch?v=U5nDPagdLPk&t=0s&list=PLxzKY3wu0_FKok5gI1v4g4S-g-PLaW9YD&index=23)**
 
-1. ### Create CMK
+1. ### Create Customer Managed Key (CMK)
     Lets create a new Customer Master Key that will be  used to encrypt data.
     ```sh
     aws kms create-key
@@ -47,9 +47,12 @@ You can also follow this article in **[Youtube](https://www.youtube.com/watch?v=
         --query CiphertextBlob
 
     # If you want the base64 encoded data to be saved to a file
-    aws kms encrypt --key-id "alias/kms-demo" --plaintext fileb://test_file.txt --output text --query CiphertextBlob | base64 --decode > encrypted_test_file
+    aws kms encrypt --key-id "alias/kms-demo" \
+        --plaintext fileb://test_file.txt \
+        --output text \
+        --query CiphertextBlob | base64 --decode > encrypted_test_file
     ```
-    1. #### Encrypted upload to S3
+    #### Encrypted upload to S3
         If you wanted to upload files to S3 with the newly created key,
         ```sh
         aws s3 cp test_file.txt \
@@ -122,7 +125,7 @@ You can also follow this article in **[Youtube](https://www.youtube.com/watch?v=
     You can delete unused or older keys to avoid future costs.
 
     ```sh
-    aws kms schedule-key-deletion --key-id KMS_KEY_ID
+    aws kms schedule-key-deletion --key-id "alias/kms-demo"
     ```
     **Note:** You will never be able to retrieve the file from S3 once you delete the CMK!
 
