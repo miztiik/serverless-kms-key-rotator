@@ -1,12 +1,16 @@
 AWS KMS Key Encrypt | Decrypt | Key Rotation
+AWS KMS encrypts your data with encryption keys that you manage. It is also integrated with AWS CloudTrail to provide encryption key usage logs to help meet your auditing, regulatory and compliance needs.
 
+![Fig : AWS KMS Encryption & Decryption Data Key](https://raw.githubusercontent.com/miztiik/serverless-kms-key-rotator/master/images/01_aws_kms_envelope_encryption_data_key.png)
+
+You can also follow this article in **[Youtube](https://www.youtube.com/watch?v=U5nDPagdLPk&t=0s&list=PLxzKY3wu0_FKok5gI1v4g4S-g-PLaW9YD&index=23)**
 
 1. ### Create CMK
     Lets create a new Customer Master Key that will be  used to encrypt data.
     ```sh
     aws kms create-key
     ```
-    If no key policy is set, a special default policy is    applied. This behaviour is different from creating a   key in GUI.
+    If no key policy is set, a special default policy is applied. This behaviour is different from creating a key in GUI.
     ```sh
     output
     {
