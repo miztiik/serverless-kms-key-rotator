@@ -39,17 +39,17 @@ You can also follow this article in **[Youtube](https://www.youtube.com/watch?v=
     ```
 
 1. ### Encrypt Data with CMK
-    Lets encrypt a local file `test_file.txt`
+    Lets encrypt a local file `confidential_data.txt`
     ```sh
     aws kms encrypt --key-id "alias/kms-demo" \
-        --plaintext fileb://test_file.txt \
+        --plaintext fileb://confidential_data.txt \
         --output text \
         --query CiphertextBlob
     ```
     _If you want the base64 encoded data to be saved to a file_
     ```sh
     aws kms encrypt --key-id "alias/kms-demo" \
-        --plaintext fileb://test_file.txt \
+        --plaintext fileb://confidential_data.txt \
         --output text \
         --query CiphertextBlob | base64 --decode > encrypted_test_file
     ```
@@ -57,7 +57,7 @@ You can also follow this article in **[Youtube](https://www.youtube.com/watch?v=
     If you wanted to upload files to S3 with the newly created key,
         
     ```sh
-    aws s3 cp test_file.txt \
+    aws s3 cp confidential_data.txt \
         s3://kms-key-rotation-test-bkt-01 \
         --sse aws:kms \
         --sse-kms-key-id "6fa6043b-2fd4-433b-83a5-3f4193d7d1a6"
@@ -77,7 +77,7 @@ You can also follow this article in **[Youtube](https://www.youtube.com/watch?v=
     aws kms decrypt \
         --ciphertext-blob fileb://encrypted_test_file \
         --output text \
-        --query Plaintext | base64 --decode > decrypted_test_file.txt
+        --query Plaintext | base64 --decode > decrypted_confidential_data.txt
     ```
 
 1. ### Rotate Customer Master Key( CMK )
