@@ -1,6 +1,6 @@
-AWS KMS Key Encrypt & Decrypt with Data Key
+# AWS KMS Key Encrypt & Decrypt with Data Key
 
-Using KMS `basic encryption` is easy, but it comes with few drawbacks. 
+Using KMS `basic encryption` [is easy](https://github.com/miztiik/serverless-kms-key-rotator/blob/master/kms-encrypt-decrypt-rotate.md), but it comes with few drawbacks. 
 
 1. Encrypting a significant amount of data is expensive as you have to transmit all your data over the wire in order to encrypt it on Amazon’s server.
     
