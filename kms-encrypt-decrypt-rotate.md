@@ -45,15 +45,17 @@ You can also follow this article in **[Youtube](https://www.youtube.com/watch?v=
         --plaintext fileb://test_file.txt \
         --output text \
         --query CiphertextBlob
-
-    # If you want the base64 encoded data to be saved to a file
+    ```
+    _If you want the base64 encoded data to be saved to a file_
+    ```sh
     aws kms encrypt --key-id "alias/kms-demo" \
         --plaintext fileb://test_file.txt \
         --output text \
         --query CiphertextBlob | base64 --decode > encrypted_test_file
     ```
     #### Encrypted upload to S3
-        If you wanted to upload files to S3 with the newly created key,
+    If you wanted to upload files to S3 with the newly created key,
+        
         ```sh
         aws s3 cp test_file.txt \
             s3://kms-key-rotation-test-bkt-01 \
@@ -117,7 +119,7 @@ You can also follow this article in **[Youtube](https://www.youtube.com/watch?v=
     Now, Lets say you have been using the keys for sometime and you dont want to use the keys, you can disable the CMK before deletion.
 
     ```sh
-    aws kms disable-key --key-id "alias/kms-demo"
+    aws kms disable-key --key-id "6fa6043b-2fd4-433b-83a5-3f4193d7d1a6"
     ```
     If you try to download the file again and you will run into an error (`dKMS.DisabledException`).
 
@@ -125,7 +127,7 @@ You can also follow this article in **[Youtube](https://www.youtube.com/watch?v=
     You can delete unused or older keys to avoid future costs.
 
     ```sh
-    aws kms schedule-key-deletion --key-id "alias/kms-demo"
+    aws kms schedule-key-deletion --key-id "6fa6043b-2fd4-433b-83a5-3f4193d7d1a6"
     ```
     **Note:** You will never be able to retrieve the file from S3 once you delete the CMK!
 
