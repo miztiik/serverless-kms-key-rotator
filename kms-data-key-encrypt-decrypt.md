@@ -62,7 +62,7 @@ You can also follow this article in **[Youtube](https://www.youtube.com/watch?v=
     ```
     **Note:** It is important to understand that AWS KMS does not keep any records of your `Data Key` on their servers. You will have to manage those keys by yourself.
 
-    1. #### Extract `Plaintext Data Key` from `CiphertextBlob`
+    #### Extract `Plaintext Data Key` from `CiphertextBlob`
         To encrypt your data, we will need the _data key_ in the plaintext format. 
         _You can store the output in a file, if you want to use for multiple opertaions or in memory as shown below_
     
@@ -98,7 +98,7 @@ You can also follow this article in **[Youtube](https://www.youtube.com/watch?v=
     # shred --iterations=100 --remove=wipesync --zero './.key/plaintext_data_key'
     ```
 
-1. ### Decrypting the data
+1. ### Decrypting the data with `Data Key`
     Decrypting data is the most straightforward, assuming you have stored the `encrypted data key` securely and able to access it when required. In this demo, we have stored it under `.key` directory. We will need the plaintext copy of the data key.
     
     ```sh
@@ -143,7 +143,7 @@ You can also follow this article in **[Youtube](https://www.youtube.com/watch?v=
     ```
     
     #### Manual Key Rotation
-    Here you basically create a new CMK, [Create CMK](#create-cmk) and use the `alias` to point to the new CMK `KeyId`
+    Here you basically create a new CMK, [Create CMK](#create-customer-master-key) and use the `alias` to point to the new CMK `KeyId`
     ![](https://docs.aws.amazon.com/kms/latest/developerguide/images/key-rotation-manual.png)
     
     ```sh
