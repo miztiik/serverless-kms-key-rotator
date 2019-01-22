@@ -143,7 +143,7 @@ You can also follow this article in **[Youtube](https://www.youtube.com/watch?v=
     ```
     
     #### Manual Key Rotation
-    Here you basically create a new CMK, [Create CMK](#create-customer-master-key-cmk) and use the `alias` to point to the new CMK `KeyId`
+    Here you basically create a new CMK, [Create CMK](#create-customer-master-keycmk) and use the `alias` to point to the new CMK `KeyId`
     ![](https://docs.aws.amazon.com/kms/latest/developerguide/images/key-rotation-manual.png)
     
     ```sh
