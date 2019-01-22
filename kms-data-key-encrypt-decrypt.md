@@ -1,19 +1,18 @@
 AWS KMS Key Encrypt & Decrypt with Data Key
 
-Using KMS `basic encryption` is easy, but it comes with a couple of drawbacks. 
+Using KMS `basic encryption` is easy, but it comes with few drawbacks. 
 
-1. Encrypting a significant amount of data is expensive as you have to 
-    transmit all your data over the wire in order to encrypt it on Amazon’s server.
+1. Encrypting a significant amount of data is expensive as you have to transmit all your data over the wire in order to encrypt it on Amazon’s server.
     
 1. Transferring data over a network could cause potential security breaches and lead to an unauthorised disclosure of, or access to your data.
 
-1. The built-in 4KB limitation prevents you from encrypting large files. You could chunk the data up and reassemble it later during decryption, but rather than doing that let us have a look how we can do better by applying envelope encryption.**
+1. The built-in 4KB limitation prevents you from encrypting large files. You could chunk the data up and reassemble it later during decryption, but rather than doing that let us have a look how we can do better by applying **Envelope encryption.**
 
-**Envelope Encryption** is a practice of encrypting plaintext data with a `Unique Data Key`, and then encrypting the `Data Ke`y with a key encryption key (KEK).
+**Envelope Encryption** is a practice of encrypting plaintext data with a `Unique Data Key`, and then encrypting the `Data Key` with a key encryption key (KEK).
 
 ![Fig : AWS KMS Encryption & Decryption Data Key](https://raw.githubusercontent.com/miztiik/serverless-kms-key-rotator/master/images/01_aws_kms_envelope_encryption_data_key.png)
 
-The above image shows the data encryption process in which the AWS KMS service produces a `Data Key` against with our previously created `Customer Master Key`, which is then used to encrypt our documents.
+The above image shows the data encryption process in which the AWS KMS service produces a `Data Key` with your   `Customer Master Key`, which is then used to encrypt the documents.
 
 You can also follow this article in **[Youtube](https://www.youtube.com/watch?v=U5nDPagdLPk&t=0s&list=PLxzKY3wu0_FKok5gI1v4g4S-g-PLaW9YD&index=23)**
 
@@ -24,7 +23,7 @@ You can also follow this article in **[Youtube](https://www.youtube.com/watch?v=
     ```
     If no key policy is set, a special default policy is applied. This behaviour is different from creating a key in GUI.
     ```sh
-    output
+    # Sample output
     {
         "KeyMetadata": {
             "AWSAccountId": "123411223344",
@@ -50,20 +49,22 @@ You can also follow this article in **[Youtube](https://www.youtube.com/watch?v=
     ```
 
 1. ### Create a data key
-    With our new `CMK` will now generate a `Data Key`. We will get a `CiphertextBlob` which is `base64` encoded and the blob contains meta-data about which `CMK` was used during data key creation. It will allow us to retrieve the plaintext key later on decryption. 
+    Now, with our new `CMK` lets generate a `Data Key`. This will give us a `CiphertextBlob` which is `base64` encoded. The blob contains the _encrypted data key_ and also the meta-data about which `CMK` was used during _data key_ creation & it will allow us to retrieve the plaintext key later on decryption. 
+
     ```sh
     # Generate the key and store it in a hidden directory called `.key`
-    mkdir -p "./.key"
+    mkdir -p "./.key" "encrypted_data"
     aws kms generate-data-key \
         --key-id "alias/kms-data-key-demo" \
         --key-spec "AES_256" \
         --output text \
         --query CiphertextBlob | base64 --decode > "./.key/encrypted_data_key"
     ```
-    **Note:** It is important to understand that AWS KMS does not keep any records of your `Data Key` on their servers ~ so you have to manage those keys by yourself.
+    **Note:** It is important to understand that AWS KMS does not keep any records of your `Data Key` on their servers. You will have to manage those keys by yourself.
 
-    1. #### Extract `Plaintext Data Key` for encryption
-        We need the plaintext version of our `CiphertextBlob` so that we can use it encrypt our data using our encryption tool `OpenSSL`.
+    1. #### Extract `Plaintext Data Key` from `CiphertextBlob`
+        To encrypt your data, we will need the _data key_ in the plaintext format. 
+        _You can store the output in a file, if you want to use for multiple opertaions or in memory as shown below_
     
     ```sh
     plaintext_data_key=$(aws kms decrypt \
@@ -74,13 +75,19 @@ You can also follow this article in **[Youtube](https://www.youtube.com/watch?v=
                             )
     ```
 
-1. ### Encrypt Data with CMK
-        Lets begin the encryption of confidential data. You can use any tool for this, here, I will be using `OpenSSL`.
+1. ### Encrypt Data with `Data Key`
+    Lets begin the encryption of our confidential data. You can use any tool for this, here, I will be using `OpenSSL`. The encrypted output is stored in a file `encrypted_data.txt`
     ```sh  
     openssl enc -e -aes256 \
         -k "${plaintext_data_key}" \
-        -in "test_file.txt" \
-        -out "encrypted_data.txt"
+        -in "confidential_data.txt" \
+        -out "./encrypted_data/enc_confidential_data.txt"
+    
+    # In case you want to store the key in a file and encrypt,
+    openssl enc -e -aes256 \
+        -k fileb://./key/plaintext_data_key \
+        -in "confidential_data.txt" \
+        -out "./encrypted_data/enc_confidential_data.txt"
     ```
     **Note:** _As we now have stored the decoded CyphertextBlob - `encrypted_data_key` and Plaintext Key - `plaintext_data_key` in our `.key/`directory, we can get rid of the `plaintext_data_key` after the data encryption is completed._
 
@@ -91,24 +98,29 @@ You can also follow this article in **[Youtube](https://www.youtube.com/watch?v=
     # shred --iterations=100 --remove=wipesync --zero './.key/plaintext_data_key'
     ```
 
-    1. #### Encrypted upload to S3
-        If you wanted to upload files to S3 with the newly created key,
-        ```sh
-        aws s3 cp test_file.txt \
-            s3://kms-key-rotation-test-bkt-01 \
-            --sse aws:kms \
-            --sse-kms-key-id "6fa6043b-2fd4-433b-83a5-3f4193d7d1a6"
-        ```
-
-1. ### Decrypt Data with CMK
-    Since the encrypted data includes keyid, we dont have to mention the `key-id` when decrypting the data.
-
+1. ### Decrypting the data
+    Decrypting data is the most straightforward, assuming you have stored the `encrypted data key` securely and able to access it when required. In this demo, we have stored it under `.key` directory. We will need the plaintext copy of the data key.
+    
     ```sh
-    aws kms decrypt --ciphertext-blob fileb://encrypted_test_file --output text --query Plaintext
-    ```
-    But the decrypted file is in base64 encoded. If we have to decode and save to file,
-    ```sh
-    aws kms decrypt --ciphertext-blob fileb://encrypted_test_file --output text --query Plaintext | base64 --decode > decrypted_test_file.txt
+    # Generate the plaintext copy of the data key and store in memory
+    plaintext_data_key=$(aws kms decrypt \
+                            --ciphertext-blob \
+                            fileb://./.key/encrypted_data_key \
+                            --output text \
+                            --query Plaintext
+                            )
+
+    # Decrypt the data
+    openssl enc -d -aes256 \
+        -k "${plaintext_data_key}" \
+        -in "./encrypted_data/enc_confidential_data.txt" \
+        -out "./decrypted_confidential_data.txt"
+    
+    # In case you want to store the key in a file and encrypt,
+    openssl enc -d -aes256 \
+        -kfile "./.key/plaintext_data_key" \
+        -in "./encrypted_data/enc_confidential_data.txt" \
+        -out "./decrypted_confidential_data.txt"
     ```
 
 1. ### Rotate Customer Master Key( CMK )
