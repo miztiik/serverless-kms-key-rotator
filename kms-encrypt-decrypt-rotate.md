@@ -56,12 +56,12 @@ You can also follow this article in **[Youtube](https://www.youtube.com/watch?v=
     #### Encrypted upload to S3
     If you wanted to upload files to S3 with the newly created key,
         
-        ```sh
-        aws s3 cp test_file.txt \
-            s3://kms-key-rotation-test-bkt-01 \
-            --sse aws:kms \
-            --sse-kms-key-id "6fa6043b-2fd4-433b-83a5-3f4193d7d1a6"
-        ```
+    ```sh
+    aws s3 cp test_file.txt \
+        s3://kms-key-rotation-test-bkt-01 \
+        --sse aws:kms \
+        --sse-kms-key-id "6fa6043b-2fd4-433b-83a5-3f4193d7d1a6"
+    ```
 
 1. ### Decrypt Data with CMK
     Since the encrypted data includes keyid, we dont have to mention the `key-id` when decrypting the data.
