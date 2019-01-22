@@ -6,7 +6,7 @@ AWS KMS encrypts your data with encryption keys that you manage. It is also inte
 
 You can also follow this article in **[Youtube](https://www.youtube.com/watch?v=0VKJfpCoF2s&t=0s&index=37&list=PLxzKY3wu0_FIjhG_6Qyisxk1GccjHV2Fz)**
 
-1. ### Create Customer Managed Key(CMK)
+1. ### Create Customer Master Key(CMK)
     Lets create a new Customer Master Key that will be  used to encrypt data.
     ```sh
     aws kms create-key
