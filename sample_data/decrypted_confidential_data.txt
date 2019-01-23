@@ -1,3 +1,0 @@
-Welcome to Mystique AWS KMS Demo to Encrypt, Decrypt Data & Rotate CMKs
-
-###Confidential Financial Data Begins Here###
