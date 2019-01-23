@@ -53,7 +53,7 @@ You can also follow this article in **[Youtube](https://www.youtube.com/watch?v=
 
     ```sh
     # Generate the key and store it in a hidden directory called `.key`
-    mkdir -p "./.key" "encrypted_data"
+    mkdir -p "./.key" "encrypted_data" "decrypted_data"
     aws kms generate-data-key \
         --key-id "alias/kms-data-key-demo" \
         --key-spec "AES_256" \
@@ -81,13 +81,13 @@ You can also follow this article in **[Youtube](https://www.youtube.com/watch?v=
     openssl enc -e -aes256 \
         -k "${plaintext_data_key}" \
         -in "confidential_data.txt" \
-        -out "./encrypted_data/enc_confidential_data.txt"
+        -out "./encrypted_data/confidential_data.txt.encrypted"
     
     # In case you want to store the key in a file and encrypt,
     openssl enc -e -aes256 \
         -k fileb://./key/plaintext_data_key \
         -in "confidential_data.txt" \
-        -out "./encrypted_data/enc_confidential_data.txt"
+        -out "./encrypted_data/confidential_data.txt.encrypted"
     ```
     **Note:** _As we now have stored the decoded CyphertextBlob - `encrypted_data_key` and Plaintext Key - `plaintext_data_key` in our `.key/`directory, we can get rid of the `plaintext_data_key` after the data encryption is completed._
 
@@ -113,14 +113,14 @@ You can also follow this article in **[Youtube](https://www.youtube.com/watch?v=
     # Decrypt the data
     openssl enc -d -aes256 \
         -k "${plaintext_data_key}" \
-        -in "./encrypted_data/enc_confidential_data.txt" \
-        -out "./decrypted_confidential_data.txt"
+        -in "./encrypted_data/confidential_data.txt.encrypted" \
+        -out "./decrypted_data/confidential_data.txt.decrypted"
     
     # In case you want to store the key in a file and encrypt,
     openssl enc -d -aes256 \
         -kfile "./.key/plaintext_data_key" \
-        -in "./encrypted_data/enc_confidential_data.txt" \
-        -out "./decrypted_confidential_data.txt"
+        -in "./encrypted_data/confidential_data.txt.encrypted" \
+        -out "./decrypted_data/confidential_data.txt.decrypted"
     ```
 
 1. ### Rotate Customer Master Key( CMK )
