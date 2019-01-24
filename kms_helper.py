@@ -107,6 +107,32 @@ def create_key_alias(region_name, alias_name, key_id):
             logger.error(f"Could not add Alias:{alias_name} to Key:{key_id}, ERROR:{str(e)}")
     return alias_created
 
+def update_key_alias(region_name, alias_name, target_key_id):
+    """
+    Update the target of the key alias
+
+    :param region_name: The region where the key is to be created. KMS Keys are region specific
+    :param type: str
+    :param alias_name: The CMK Alias
+    :param type: str
+    :param target_key_id: The target CMK KeyId or Alias or ARN
+    :param type: str
+
+    :return: alias_created - Returns True, If alias created, False If Not.
+    :rtype: bool
+    """
+    kms_client = boto3.client('kms', region_name = region_name)
+    alias_created = False
+    if alias_name:
+        try:
+            # Key alias MUST exist before it is re-assigned
+            if does_kms_key_exists(region_name, alias_name):
+                response = kms_client.update_alias( AliasName = f"alias/{alias_name}", TargetKeyId = key_id )
+                alias_created = True
+        except ClientError as e:
+            logger.error(f"Could not add Alias:{alias_name} to Key:{key_id}, ERROR:{str(e)}")
+    return alias_created
+
 def create_kms_key(region_name, key_name, key_policy, alias_name = None):
     """
     Create a KMS key and a alias based on the given policy
@@ -132,16 +158,14 @@ def create_kms_key(region_name, key_name, key_policy, alias_name = None):
         else:
             logger.info(f"WARNING: No valid Key Policy was provided, Using default policy.")
             resp = kms_client.create_key()
-        # If alias_name is not set, use the `key_name` as the alias name, as it is good practices to use alias.
-        if not alias_name:
-            alias_name = key_name
-        # Assign the alias to the key
-        # Key Alias MUST be unique per region, Lets check first if key alias exists. 
-        if not does_kms_key_exists(region_name, alias_name):
-            logger.info(f"INFO: Proceeding to create new KMS Alias")
-            alias_status = create_key_alias(region_name, alias_name, resp.get('KeyMetadata').get('KeyId') )
-            if not alias_status:
-                resp['error_message'] = "Unable to create Alias"
+        # Create alias only if requested
+        if alias_name:
+            # Key Alias MUST be unique per region, Lets check first if key alias exists.
+            if not does_kms_key_exists(region_name, alias_name):
+                logger.info(f"INFO: Proceeding to create new KMS Alias")
+                alias_status = create_key_alias(region_name, alias_name, resp.get('KeyMetadata').get('KeyId') )
+                if not alias_status:
+                    resp['error_message'] = "Unable to create Alias"
         resp['status'] = True
     except Exception as e:
         logger.error('ERROR: {0}'.format( str(e) ) )
