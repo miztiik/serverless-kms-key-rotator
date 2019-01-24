@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 """
-.. module: To Automatically rotate KMS Key perioidcally
+.. module: To create encrypt/decrypt data with KMS CMKs
     :platform: AWS
     :copyright: (c) 2019 Mystique.,
     :license: Apache, see LICENSE for more details.
@@ -37,8 +37,7 @@ def set_global_vars():
         global_vars['Owner']                    = "Mystique"
         global_vars['Environment']              = "Prod"
         global_vars['aws_region']               = "us-east-1"
-        global_vars['tag_name']                 = "serverless_kms_key_rotator"
-        global_vars['kms_bucket']               = "kms-key-rotation-test-bkt-01"
+        global_vars['tag_name']                 = "kms_helper"
         global_vars['key_rotation_frequency']   = 180
         global_vars['status']                   = True
     except Exception as e:
@@ -255,24 +254,24 @@ def encrypted_upload_to_s3(file_name, key_id, bucket_name):
     """
     Upload an Object to the given S3 `bucket_name` using the given KMS key_id`
 
+    :param file_name: The file to be uploaded
+    :param type: str
     :param key_id: The CMK KeyId
     :param type: str
+    :param bucket_name: The name of the S3 bucket
+    :param type: str
 
-    :return: key_exists Returns True, If key exists, False If Not.
-    :rtype: bool
+    :return: obj_upload Returns True/False, aalong with error message.
+    :rtype: json
     """
     obj_upload = {'status': False}
     s3 = boto3.resource('s3', config=Config(signature_version='s3v4'))
-    # bucket_name = "kms-upload-enc-08"
-    # file_name = "./metadata"
-    
-    key_name = ""
     try:
         if file_name and bucket_name and key_id:
             key_name = os.path.basename(file_name)
             file_data = read_from_file(file_name)
             if file_data:
-                s3.meta.client.upload_file( Filename=file_name, Bucket=bucket_name, Key=key_name, ExtraArgs={"ServerSideEncryption": "aws:kms", "SSEKMSKeyId": key_id } )
+                obj_upload['response'] = s3.meta.client.upload_file( Filename=file_name, Bucket=bucket_name, Key=key_name, ExtraArgs={"ServerSideEncryption": "aws:kms", "SSEKMSKeyId": key_id } )
                 obj_upload['status'] = True
             else:
                 obj_upload['error_message'] = "Unable to get file contents"
@@ -302,9 +301,8 @@ def lambda_handler(event, context):
     kms_client = boto3.client('kms')
     # Get list of customer master keys (CMKs)
     cmks = kms_client.list_keys()
-    key_id = "6fa6043b-2fd4-433b-83e5-3f4193d7d1a6"
-    kms_client.list_aliases( KeyId = key_id )
-    # arn:aws:kms:us-east-1:589562693537:key/7fd98284-5c08-4b56-88e8-52d1305b6bb6
+
+    return cmks
 
 if __name__ == '__main__':
     lambda_handler(None, None)
