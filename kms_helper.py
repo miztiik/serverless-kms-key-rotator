@@ -126,8 +126,8 @@ def update_key_alias(region_name, alias_name, target_key_id):
     if alias_name:
         try:
             # Key alias MUST exist before it is re-assigned
-            if does_kms_key_exists(region_name, alias_name):
-                response = kms_client.update_alias( AliasName = f"alias/{alias_name}", TargetKeyId = key_id )
+            if does_kms_key_exists(region_name, f"alias/{alias_name}"):
+                response = kms_client.update_alias( AliasName = f"alias/{alias_name}", TargetKeyId = target_key_id )
                 alias_created = True
         except ClientError as e:
             logger.error(f"Could not add Alias:{alias_name} to Key:{key_id}, ERROR:{str(e)}")
