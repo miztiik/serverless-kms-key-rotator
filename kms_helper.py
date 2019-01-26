@@ -199,13 +199,11 @@ def encrypt_text(region_name, key_id, text_data = None):
         resp['error_message'] = str(e)
     return resp
 
-def decrypt_blob(region_name, key_id, encrypted_blob):
+def decrypt_blob(region_name, encrypted_blob):
     """
     Encrypt plain `text_data` using the `key_id`
 
     :param region_name: The region where the key is to be created. KMS Keys are region specific
-    :param type: str
-    :param key_id: The CMK KeyId
     :param type: str
     :param encrypted_blob: The encrypted base64 encoded data
     :param type: base64 encoded str
